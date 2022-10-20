@@ -47,18 +47,24 @@ st.header("Transcription made easier.")
 uploaded_file = st.file_uploader(label="Upload the audio-file you would like to transcribe.",
                                  type=['mp3', 'm4a', 'wav'])
 
-if uploaded_file is not None:
-    bytes_data = uploaded_file.getvalue()
-    with open(os.path.join("audio", uploaded_file.name), "wb") as file:
-        file.write(uploaded_file.getbuffer())
-    with st.spinner("Working on the transcription..."):
-        transcript = transcriber(file.name)
-        formatted_transcript = format_transcript(transcript)
-        transcript_result_to_display = list_to_plain_text(formatted_transcript)
-        final_text = st.text_area(label="Your Transcript:", value=transcript_result_to_display, height=400)
-        st.download_button(label="Download Text as txt",
-                           data=final_text,
-                           file_name="Transcript.docx")
-    if bytes_data:
-        st.audio(bytes_data, format='audio/wav')
-        st.success("Done!")
+
+# TODO connect app to database for temp storage of audiofile.
+def start_upload_and_transcribe(new_file):
+    if new_file is not None:
+        bytes_data = new_file.getvalue()
+        with open(os.path.join("audio", new_file.name), "wb") as file:
+            file.write(uploaded_file.getbuffer())
+        with st.spinner("Working on the transcription..."):
+            transcript = transcriber(file.name)
+            formatted_transcript = format_transcript(transcript)
+            transcript_result_to_display = list_to_plain_text(formatted_transcript)
+            final_text = st.text_area(label="Your Transcript:", value=transcript_result_to_display, height=400)
+            st.download_button(label="Download Text as txt",
+                               data=final_text,
+                               file_name="Transcript.docx")
+        if bytes_data:
+            st.audio(bytes_data, format='audio/wav')
+            st.success("Done!")
+
+
+start_upload_and_transcribe(uploaded_file)
