@@ -88,13 +88,6 @@ def text_area(text):
                 on_click=update_file()
             )
 
-        with col3:
-            if st.button(label="Start A new Transcription."):
-                delete_files("audio")
-                delete_files("transcripts")
-                for key in st.session_state.keys():
-                    del st.session_state[key]
-
         bytes_data = st.session_state.new_audio.getvalue()
 
         if bytes_data:
@@ -121,10 +114,10 @@ def transcribe_and_prepare_audio(new_file):
 
 st.set_page_config(
     page_title="My Personal Transcriber.",
-    layout="wide"
+    layout="centered"
 )
 st.header("Transcription made easier.")
-tab1, tab2 = st.tabs(["Upload", "Transcript Document"])
+tab1, tab2 = st.tabs(["Upload", "Transcript Tab"])
 
 with tab1:
     if "first_run" not in st.session_state:
@@ -142,5 +135,6 @@ with tab1:
             st.session_state["current_text"] = None
 
         transcribe_and_prepare_audio(uploaded_file)
+        st.write("After uploading your audio file, go to the Transcript Tab.")
     else:
         text_area(st.session_state.current_text)
