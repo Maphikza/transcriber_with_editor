@@ -3,6 +3,7 @@ import streamlit as st
 import os
 from pathlib import Path
 import time
+import pyautogui
 
 path = Path("audio")
 path_transcript = Path("transcripts")
@@ -40,7 +41,6 @@ def list_to_plain_text(list_entry):
 def write_to_file(text):
     with open(os.path.join("transcripts", "Transcript.txt"), 'w') as f:
         f.write(text)
-        delete_files("audio")
     st.session_state.current_text = text
     text_area(st.session_state.current_text)
 
@@ -55,15 +55,18 @@ def update_file():
         pass
 
 
-def delete_files(my_path):
-    for file in os.listdir(my_path):
-        file_path = os.path.join(path, file)
-        try:
-            if os.path.isfile(file_path):
-                os.unlink(file_path)
-        except Exception as e:
-            print(e)
+def delete_file(file_name):
+    current_directory = os.getcwd()
+    audio_folder = os.path.join(current_directory, "audio")
+    file_path = os.path.join(audio_folder, file_name)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        print(f"{file_name} has been deleted successfully from {audio_folder}")
+    else:
+        print(f"{file_name} does not exist in {audio_folder}")
 
+def apply_changes():
+    pyautogui.hotkey('ctrl', 'enter')
 
 def text_area(text):
     with tab2:
@@ -75,18 +78,17 @@ def text_area(text):
         col1, col2, col3 = st.columns(3, gap="small")
         with col1:
             st.download_button(
-                label="Download As .txt file.",
-                data=running_text,
-                file_name="YourTranscript.txt",
-                on_click=update_file()
-            )
-        with col2:
-            st.download_button(
-                label="Download As .docx file.",
+                label="Download transcript",
                 data=running_text,
                 file_name="YourTranscript.docx",
                 on_click=update_file()
             )
+        with col2:
+            st.button(label="New Start",
+                      on_click=delete_file(st.session_state.new_audio.name))
+        with col3:
+            st.button(label="Save Changes",
+                      on_click=apply_changes())
 
         bytes_data = st.session_state.new_audio.getvalue()
 
@@ -104,7 +106,7 @@ def transcribe_and_prepare_audio(new_file):
                 file.write(st.session_state.new_audio.getbuffer())
 
                 if st.session_state.first_run is None:
-                    st.info('Working on you transcription. This may take a few minutes...', icon="ℹ")
+                    st.info(f'Working on you transcription. This may take a few minutes...', icon='i')
                     transcript = transcriber(file.name)
                     formatted_transcript = format_transcript(transcript)
                     transcript_result_to_display = list_to_plain_text(formatted_transcript)
@@ -126,6 +128,9 @@ with tab1:
     uploaded_file = st.file_uploader(label="Upload the audio-file you would like to transcribe.",
                                      type=['mp3', 'm4a', 'wav'])
 
+    if uploaded_file:
+        st.write("After uploading your audio file, go to the Transcript Tab.")
+
     if st.session_state.first_run is None:
         print("Fresh Start")
         if "new_audio" not in st.session_state:
@@ -134,7 +139,8 @@ with tab1:
         if "current_text" not in st.session_state:
             st.session_state["current_text"] = None
 
+
         transcribe_and_prepare_audio(uploaded_file)
-        st.write("After uploading your audio file, go to the Transcript Tab.")
+
     else:
         text_area(st.session_state.current_text)
