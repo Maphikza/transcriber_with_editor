@@ -39,23 +39,12 @@ def list_to_plain_text(list_entry):
 
 
 def write_to_file(text):
-    with open(os.path.join("transcripts", "Transcript.txt"), 'w') as f:
-        f.write(text)
     st.session_state.current_text = text
     text_area(st.session_state.current_text)
 
 
-def update_file():
-    print(f"Entering the update function. 1")
-    if st.session_state.current_text is not None:
-        with open(os.path.join("transcripts", "Transcript.txt"), 'w') as f:
-            f.write(st.session_state.current_text)
-            print(f"Leaving the update function.2")
-    else:
-        pass
-
-
-def delete_file(file_name):
+def delete_file():
+    file_name = st.session_state.new_audio.name
     current_directory = os.getcwd()
     audio_folder = os.path.join(current_directory, "audio")
     file_path = os.path.join(audio_folder, file_name)
@@ -70,33 +59,30 @@ def apply_changes():
 
 def text_area(text):
     with tab2:
-        print("Entering text area. 3")
         running_text = st.text_area(label="Your Transcript:",
                                     value=text,
                                     height=500)
 
         col1, col2, col3 = st.columns(3, gap="small")
-        with col1:
+        with col3:
             st.download_button(
                 label="Download transcript",
                 data=running_text,
                 file_name="YourTranscript.docx",
-                on_click=update_file()
+                on_click=apply_changes
             )
         with col2:
-            st.button(label="New Start",
-                      on_click=delete_file(st.session_state.new_audio.name))
-        with col3:
+            st.button(label="Delete Audio file",
+                      on_click=delete_file
+                      )
+        with col1:
             st.button(label="Save Changes",
-                      on_click=apply_changes())
+                      on_click=apply_changes)
 
         bytes_data = st.session_state.new_audio.getvalue()
 
         if bytes_data:
             st.audio(st.session_state.new_audio.getvalue(), format='audio/wav')
-            print("Leaving text area. 4")
-            print(running_text)
-
 
 def transcribe_and_prepare_audio(new_file):
     with tab2:
@@ -106,7 +92,7 @@ def transcribe_and_prepare_audio(new_file):
                 file.write(st.session_state.new_audio.getbuffer())
 
                 if st.session_state.first_run is None:
-                    st.info(f'Working on you transcription. This may take a few minutes...', icon='i')
+                    st.info(f'Working on your transcription. This may take a few minutes...', icon='ℹ️')
                     transcript = transcriber(file.name)
                     formatted_transcript = format_transcript(transcript)
                     transcript_result_to_display = list_to_plain_text(formatted_transcript)
