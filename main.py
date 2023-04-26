@@ -7,11 +7,11 @@ import pyautogui
 
 path = Path("audio")
 path_transcript = Path("transcripts")
-model = whisper.load_model("base")
 
 
 def transcriber(audio_path):
     audio = whisper.load_audio(audio_path)
+    model = whisper.load_model("base")
     result = model.transcribe(audio)
     results = result["segments"]
     return results
